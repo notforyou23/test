@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guitar Fretboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background: #667eea;
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn.active {
+            background: #764ba2;
+        }
+
+        .fretboard {
+            position: relative;
+            background: #8B4513;
+            border-radius: 10px;
+            padding: 20px;
+            overflow-x: auto;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .fretboard-inner {
+            min-width: 900px;
+            position: relative;
+        }
+
+        .strings-container {
+            position: relative;
+            padding: 20px 0;
+        }
+
+        .string {
+            position: relative;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            border-bottom: 2px solid #D2691E;
+        }
+
+        .string:last-child {
+            border-bottom: none;
+        }
+
+        .string::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 50%;
+            height: 2px;
+            background: linear-gradient(to bottom, #888, #333);
+        }
+
+        .string:nth-child(1)::after { height: 1px; }
+        .string:nth-child(2)::after { height: 1.5px; }
+        .string:nth-child(3)::after { height: 2px; }
+        .string:nth-child(4)::after { height: 2.5px; }
+        .string:nth-child(5)::after { height: 3px; }
+        .string:nth-child(6)::after { height: 3.5px; }
+
+        .fret {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: #C0C0C0;
+            box-shadow: 1px 0 3px rgba(0, 0, 0, 0.5);
+        }
+
+        .fret.nut {
+            width: 6px;
+            background: #F5F5DC;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
+        }
+
+        .note {
+            position: absolute;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: #fff;
+            border: 2px solid #667eea;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.85em;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            z-index: 10;
+            transform: translate(-50%, -50%);
+        }
+
+        .note:hover {
+            background: #667eea;
+            color: white;
+            transform: translate(-50%, -50%) scale(1.15);
+        }
+
+        .note.highlighted {
+            background: #764ba2;
+            color: white;
+            box-shadow: 0 0 15px rgba(118, 75, 162, 0.8);
+        }
+
+        .note.root {
+            background: #ff6b6b;
+            color: white;
+            border-color: #ff6b6b;
+        }
+
+        .string-label {
+            position: absolute;
+            left: -50px;
+            width: 40px;
+            text-align: center;
+            font-weight: bold;
+            color: #333;
+            background: #F5F5DC;
+            border-radius: 5px;
+            padding: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .fret-marker {
+            position: absolute;
+            bottom: -30px;
+            transform: translateX(-50%);
+            width: 12px;
+            height: 12px;
+            background: #D2691E;
+            border-radius: 50%;
+        }
+
+        .fret-marker.double {
+            bottom: -40px;
+        }
+
+        .fret-number {
+            position: absolute;
+            bottom: -55px;
+            transform: translateX(-50%);
+            font-size: 0.9em;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .info {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-circle {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #667eea;
+        }
+
+        .legend-circle.root {
+            background: #ff6b6b;
+            border-color: #ff6b6b;
+        }
+
+        .legend-circle.highlighted {
+            background: #764ba2;
+            border-color: #764ba2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Interactive Guitar Fretboard</h1>
+        <p class="subtitle">Standard Tuning (E A D G B E) - Click notes to highlight</p>
+
+        <div class="controls">
+            <button class="btn" onclick="highlightNote('C')">Show C</button>
+            <button class="btn" onclick="highlightNote('D')">Show D</button>
+            <button class="btn" onclick="highlightNote('E')">Show E</button>
+            <button class="btn" onclick="highlightNote('F')">Show F</button>
+            <button class="btn" onclick="highlightNote('G')">Show G</button>
+            <button class="btn" onclick="highlightNote('A')">Show A</button>
+            <button class="btn" onclick="highlightNote('B')">Show B</button>
+            <button class="btn" onclick="clearHighlights()">Clear</button>
+        </div>
+
+        <div class="fretboard">
+            <div class="fretboard-inner" id="fretboard">
+                <!-- Fretboard will be generated by JavaScript -->
+            </div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-circle"></div>
+                <span>Note</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-circle highlighted"></div>
+                <span>Highlighted</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-circle root"></div>
+                <span>Root Note (Open String)</span>
+            </div>
+        </div>
+
+        <div class="info">
+            Click any note or use the buttons above to highlight all instances of that note
+        </div>
+    </div>
+
+    <script>
+        // Guitar configuration
+        const strings = [
+            { name: 'E', note: 'E', octave: 4 },  // High E
+            { name: 'B', note: 'B', octave: 3 },
+            { name: 'G', note: 'G', octave: 3 },
+            { name: 'D', note: 'D', octave: 3 },
+            { name: 'A', note: 'A', octave: 2 },
+            { name: 'E', note: 'E', octave: 2 }   // Low E
+        ];
+
+        const numFrets = 15;
+        const notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+        const fretMarkers = [3, 5, 7, 9, 12, 15];
+        const doubleFretMarkers = [12];
+
+        // Calculate fret positions (using the rule of 18)
+        function getFretPosition(fretNumber) {
+            const scaleLength = 650; // mm (standard scale length)
+            const totalWidth = 900; // pixels for fretboard
+            const nutPosition = 50;
+
+            if (fretNumber === 0) return nutPosition;
+
+            const position = scaleLength * (1 - Math.pow(2, -fretNumber / 12));
+            return nutPosition + (position / scaleLength) * (totalWidth - nutPosition);
+        }
+
+        // Get note at fret
+        function getNoteAtFret(stringNote, fret) {
+            const startIndex = notes.indexOf(stringNote);
+            const noteIndex = (startIndex + fret) % 12;
+            return notes[noteIndex];
+        }
+
+        // Create fretboard
+        function createFretboard() {
+            const fretboard = document.getElementById('fretboard');
+            const stringsContainer = document.createElement('div');
+            stringsContainer.className = 'strings-container';
+
+            // Create strings
+            strings.forEach((string, stringIndex) => {
+                const stringDiv = document.createElement('div');
+                stringDiv.className = 'string';
+
+                // Add string label
+                const label = document.createElement('div');
+                label.className = 'string-label';
+                label.textContent = string.name;
+                stringDiv.appendChild(label);
+
+                // Add notes for each fret
+                for (let fret = 0; fret <= numFrets; fret++) {
+                    const note = getNoteAtFret(string.note, fret);
+                    const noteDiv = document.createElement('div');
+                    noteDiv.className = 'note';
+                    if (fret === 0) noteDiv.classList.add('root');
+                    noteDiv.textContent = note;
+                    noteDiv.dataset.note = note;
+                    noteDiv.dataset.string = stringIndex;
+                    noteDiv.dataset.fret = fret;
+
+                    const xPos = getFretPosition(fret);
+                    const offset = fret === 0 ? 0 : (getFretPosition(fret + 1) - xPos) / 2;
+                    noteDiv.style.left = (xPos + offset) + 'px';
+                    noteDiv.style.top = '50%';
+
+                    noteDiv.onclick = () => highlightNote(note);
+
+                    stringDiv.appendChild(noteDiv);
+                }
+
+                stringsContainer.appendChild(stringDiv);
+            });
+
+            // Add frets
+            for (let fret = 0; fret <= numFrets; fret++) {
+                const fretDiv = document.createElement('div');
+                fretDiv.className = fret === 0 ? 'fret nut' : 'fret';
+                fretDiv.style.left = getFretPosition(fret) + 'px';
+                stringsContainer.appendChild(fretDiv);
+
+                // Add fret markers
+                if (fretMarkers.includes(fret)) {
+                    const marker = document.createElement('div');
+                    marker.className = 'fret-marker';
+                    if (doubleFretMarkers.includes(fret)) {
+                        marker.classList.add('double');
+                        const marker2 = marker.cloneNode();
+                        marker.style.bottom = '-25px';
+                        marker2.style.bottom = '-55px';
+                        marker.style.left = (getFretPosition(fret) + (getFretPosition(fret + 1) - getFretPosition(fret)) / 2) + 'px';
+                        marker2.style.left = marker.style.left;
+                        stringsContainer.appendChild(marker);
+                        stringsContainer.appendChild(marker2);
+                    } else {
+                        marker.style.left = (getFretPosition(fret) + (getFretPosition(fret + 1) - getFretPosition(fret)) / 2) + 'px';
+                        stringsContainer.appendChild(marker);
+                    }
+                }
+
+                // Add fret numbers
+                if (fret > 0) {
+                    const fretNum = document.createElement('div');
+                    fretNum.className = 'fret-number';
+                    fretNum.textContent = fret;
+                    fretNum.style.left = (getFretPosition(fret) + (getFretPosition(fret + 1) - getFretPosition(fret)) / 2) + 'px';
+                    stringsContainer.appendChild(fretNum);
+                }
+            }
+
+            fretboard.appendChild(stringsContainer);
+        }
+
+        // Highlight all instances of a note
+        function highlightNote(noteName) {
+            clearHighlights();
+            const allNotes = document.querySelectorAll('.note');
+            allNotes.forEach(note => {
+                if (note.dataset.note === noteName && !note.classList.contains('root')) {
+                    note.classList.add('highlighted');
+                }
+            });
+        }
+
+        // Clear all highlights
+        function clearHighlights() {
+            const allNotes = document.querySelectorAll('.note.highlighted');
+            allNotes.forEach(note => note.classList.remove('highlighted'));
+        }
+
+        // Initialize fretboard on page load
+        createFretboard();
+    </script>
+</body>
+</html>
